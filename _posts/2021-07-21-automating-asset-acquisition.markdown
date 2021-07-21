@@ -1,14 +1,10 @@
 ---
-
 layout: post
-
 title: "Automating Asset Acquisition"
-
 date: 2021-07-19 05:58:18 -0500
-
 categories: resourcecalculator
-
 ---
+
 
 Approximate read time: {{ page.content | reading_time }}.
 
