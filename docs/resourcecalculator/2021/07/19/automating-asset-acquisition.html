@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Automating Asset Acquisition | Orthogonal Projects</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Automating Asset Acquisition" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Approximate read time: 30 seconds." />
+<meta property="og:description" content="Approximate read time: 30 seconds." />
+<link rel="canonical" href="https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition.html" />
+<meta property="og:url" content="https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition.html" />
+<meta property="og:site_name" content="Orthogonal Projects" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-07-19T05:58:18-05:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Automating Asset Acquisition" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","headline":"Automating Asset Acquisition","dateModified":"2021-07-19T05:58:18-05:00","datePublished":"2021-07-19T05:58:18-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition.html"},"url":"https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition.html","description":"Approximate read time: 30 seconds.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/Blog/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://asherglick.github.io/Blog/feed.xml" title="Orthogonal Projects" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper">
+<a class="site-title" rel="author" href="/Blog/">Orthogonal Projects</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/Blog/about/">About</a></div>
+      </nav>
+</div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Automating Asset Acquisition</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2021-07-19T05:58:18-05:00" itemprop="datePublished">Jul 19, 2021
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Approximate read time: 7 minutes.</p>
+
+<h2 id="background">Background</h2>
+
+<p><a href="https://resourcecalculator.com" target="_blank" rel="noopener">ResourceCalculator.com</a> is a video game tool that lets you answer the question “What are all the materials I need to gather to build my next project”. It takes all the data about each specific item and creates a flow of <em>raw materials</em> to <em>desired items</em>. However, for the Resource Calculator to do this, it needs to get the <a href="https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/resources.yaml" target="_blank" rel="noopener">data</a> on each item from somewhere. Typically, that has been a tedious manual process. This post breaks down one method used for automating this work inside the video game <a href="https://minecraft.net" target="_blank" rel="noopener">Minecraft</a>.</p>
+
+<p><img src="https://asherglick.github.io/assets/Ub6XpozFlqRnxwzB.webp" alt="Image of resourcecalculators sankey chart"></p>
+
+<p>Minecraft recently released its 1.17 update. For <a href="https://resourcecalculator.com" target="_blank" rel="noopener">ResourceCalculator.com</a> to continue to function properly, the <a href="https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/resources.yaml" target="_blank" rel="noopener">data</a> and <a href="https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/items" target="_blank" rel="noopener">icons</a> need to be updated too. Otherwise, it may return the wrong results to the users, and a calculator that gives you the wrong number is about as useful as an unsharpened pencil with no eraser. Minecraft has just around a thousand items at this point and for <a href="https://resourcecalculator.com" target="_blank" rel="noopener">Resource Calculator</a> to work correctly it needs data about each one. This data primarily falls into 4 groups.</p>
+
+<ol>
+  <li>
+    <p>The name of the item.</p>
+  </li>
+  <li>
+    <p>A picture of the item.</p>
+  </li>
+  <li>
+    <p>A list of all the methods of creating the item.</p>
+  </li>
+  <li>
+    <p>Optional flags (a.k.a. custom settings)</p>
+  </li>
+</ol>
+
+<p>The first two are pretty self-explanatory, and what we will cover in this post. The latter two are quite complex to automate therefore, as every good programmer knows, we will go for the easier stuff first.</p>
+
+<p>Before we begin, some fun trivia to start with. In this version of the game, there are no items at all that use the lowercase letter <code class="language-plaintext highlighter-rouge">j</code> or the uppercase letter <code class="language-plaintext highlighter-rouge">X</code>. Every other uppercase and lowercase letter of the English alphabet is used.</p>
+
+<h2 id="getting-item-images">Getting Item Images</h2>
+
+<p>Now that we have a limited scope, let’s see what we can do. One option is that we can scrape these images from the wiki. However, that is an extra level of human interaction where something can get mangled. We know we already have the images available to us on our computer because we can see them in-game, let’s try to grab them from there instead. Luckily Linux offers some good options for programmatically moving the mouse and capturing the screen. For taking screenshots we will use the <a href="https://imagemagick.org" target="_blank" rel="noopener">ImageMagick</a> subprogram <a href="https://imagemagick.org/script/import.php" target="_blank" rel="noopener">import</a>. Import allows us to take screenshots of the entire desktop, but it also lets us take screenshots of specific rectangles on the desktop as long as we specify the position and size.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import <span class="nt">-window</span> root <span class="nt">-crop</span> <span class="s2">"32x32+782+459"</span> cropped_screenshot.webp
+</code></pre></div></div>
+
+<p>Luckily Minecraft has a grid layout in their creative menu, so we can easily calculate all the positions and sizes of each item in the menu so long as we know the top left corner of the menu.</p>
+
+<p><img src="https://asherglick.github.io/assets/qBT6tPRPpLMJesvq.webp" alt="Image of the Minecraft creative menu"></p>
+
+<p>But Minecraft has way more items than can fit in their 5x9 creative menu. Minecraft uses a scroll bar to allow players to navigate to the next page of the menu. All we need to do is scroll down. We could do this by clicking and dragging the scroll bar, but it is much easier to just use the scroll wheel! We can specify the number of clicks of the scroll wheel we want, which will allow us to scroll precisely to the next page.</p>
+
+<p>Once again Linux has a wonderful little tool to handle this. <a href="https://github.com/jordansissel/xdotool" target="_blank" rel="noopener">xdotool</a> is just a tool to tell <a href="https://www.x.org" target="_blank" rel="noopener">X11</a> to do things. I love it when names make sense.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>xdotool click <span class="nt">--repeat</span> 5 <span class="nt">--delay</span> 200 5
+</code></pre></div></div>
+
+<p>Here we told xdotool to click mouse button 5, the scroll wheel down button, five times with a 200ms delay between each click. That delay is there so that Minecraft has time to catch up to each input by the time the next input is sent. Each scroll wheel down click moves the menu one row, there are five rows, so five clicks should bring us exactly to the next page.</p>
+
+<p>Wonderful! But what do we do about the final page, where we hit the bottom and can’t keep scrolling? Well, we do nothing right now because Mojang has been so kind as to release this version with exactly the right amount of items to display a full page at the end, so there is no overflow! This will almost definitely be a problem that will need to be dealt with for future versions of Minecraft and like a good programmer we will deal with it when those future versions come out.</p>
+
+<p><img src="https://asherglick.github.io/assets/EmtDe3wsrB1s0Pv3.webp" alt="Image of the Minecraft creative menu scrolled down"></p>
+
+<p>Now we have an image of every item in the game, but there is still a slight problem. We have no idea what that item is! If we don’t know what item we have a picture of, then we can’t assign it to the right place on the calculator page.</p>
+
+<h2 id="getting-item-names">Getting Item Names</h2>
+
+<p>Players can see the names of items in the game by moving their mouse over the items and getting a handy little pop-up with the name of the item and some other text. This is great for humans who can read images but computers want something more ASCII.</p>
+
+<p><img src="https://asherglick.github.io/assets/bXFLhOW1IUexSWmR.webp" alt="Image of the Minecraft item info hoverbox"></p>
+
+<p>Our only saving grace here is that the top left corner of the hover menu appears in exactly the same position relative to the mouse each time. This means as long as we know where the mouse is we can calculate the top left corner of where the text will be.</p>
+
+<p>Well great! We need to move the mouse over the icon to begin with so let’s just move it to a fixed spot of “right in the middle of the item”.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>xdotool mousemove 798 475
+</code></pre></div></div>
+
+<p>Now that we know where the mouse is, we can calculate where the top left corner of the name of the item will be. However, we cannot know where the item’s name will end because we don’t know how long the word is. In order to compensate we will just take a screenshot that starts at the top left corner, and extends all the way to the end of the screen.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import <span class="nt">-window</span> root <span class="nt">-crop</span> 1098x16+822+451 image_text/0.webp
+</code></pre></div></div>
+
+<p>Great, we have a screenshot of the name, but we still need to convert that into text. My first attempt of decoding this image was via the OCR tool <a href="https://github.com/tesseract-ocr/tesseract" target="_blank" rel="noopener">Tesseract</a>. Unfortunately, it turns out that Tesseract does not like these small images that use pixel fonts. The next option was grabbing each individual pixel and deciding what letter it corresponded to. The letters are mostly light pixels and the backgrounds are mostly dark pixels. If we increase contrast, then we can turn all the light pixels into white pixels, and all the dark pixels into black pixels. To do this quickly, we can use another of ImageMagick’s tools <a href="https://imagemagick.org/script/convert.php" target="_blank" rel="noopener">convert</a>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>convert image_text/0.webp <span class="nt">-grayscale</span> Rec709Luma <span class="nt">-brightness-contrast</span> 50x100% image_text/0.webp
+</code></pre></div></div>
+
+<p>Running that command gives us a solidly black or white image that looks like this:</p>
+
+<p><img src="https://asherglick.github.io/assets/V5Sh5AzK7XYaNsaQ.webp" alt="Image of contrast boosted item name"></p>
+
+<p>Then we look for any columns that contain only black pixels, and use that to divide up the image.</p>
+
+<p><img src="https://asherglick.github.io/assets/5HGkv4twOvoHzLXY.webp" alt="Image of contrast boosted item name"></p>
+
+<p>After the image is divided, we eliminate any chunks that are over 10 pixels wide.</p>
+
+<p><img src="https://asherglick.github.io/assets/KjLOPxU7GjKWJrW1.webp" alt="Image of contrast boosted item name"></p>
+
+<p>After that we convert each column of pixels to a single byte, white pixels become <code class="language-plaintext highlighter-rouge">1</code>s black pixels become <code class="language-plaintext highlighter-rouge">0</code>s. For this item, we would get the follow hex values.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Index</th>
+      <th>Hex</th>
+      <th>Letter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td><code class="language-plaintext highlighter-rouge">0x44a2a2a29c</code></td>
+      <td>S</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td><code class="language-plaintext highlighter-rouge">0x20fc22</code></td>
+      <td>t</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><code class="language-plaintext highlighter-rouge">0x1c2222221c</code></td>
+      <td>o</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><code class="language-plaintext highlighter-rouge">0x3e2020201e</code></td>
+      <td>n</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><code class="language-plaintext highlighter-rouge">0x1c2a2a2a1a</code></td>
+      <td>e</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Using a lookup table we can take those binary chunks and do a quick check to see what letter they correspond to. Once we do that, we have an ASCII string!</p>
+
+<h2 id="result">Result</h2>
+
+<p>Success! We now have a series of named images that were obtained directly from the source, no wiki scraping or manual work.</p>
+
+<p><img src="https://asherglick.github.io/assets/mv3nz7eCTrpudddn.webp" alt="Image of cropped and named items"></p>
+
+<p>If you got to here, you may be interested in looking at the complete source code from this post. Here are direct links to the <a href="https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/scripts/dice_screenshots.sh" target="_blank" rel="noopener">bash screenshot tool script</a> and the <a href="https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/scripts/mc_ocr.py" target="_blank" rel="noopener">Minecraft pixel font OCR script</a>.</p>
+
+<p>Check out Resource Calculator at <a href="https://resourcecalculator.com" target="_blank" rel="noopener">ResourceCalculator.com</a> to see the final result of this work.</p>
+
+
+  </div>
+<a class="u-url" href="/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/Blog/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Orthogonal Projects</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Orthogonal Projects</li>
+<li><a class="u-email" href="mailto:asher@orthogonalprojects.com">asher@orthogonalprojects.com</a></li>
+</ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+<ul class="social-media-list"><li><a href="https://github.com/asherglick" target="_blank" rel="noopener"><svg class="svg-icon"><use xlink:href="/Blog/assets/minima-social-icons.svg#github"></use></svg> <span class="username">asherglick</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>A collection of lessons learned from failure and success. All of which I have found useful, and hopefuly someone else will to.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

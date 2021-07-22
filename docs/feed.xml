@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://asherglick.github.io/Blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://asherglick.github.io/Blog/" rel="alternate" type="text/html" /><updated>2021-07-21T23:48:29-05:00</updated><id>https://asherglick.github.io/Blog/feed.xml</id><title type="html">Orthogonal Projects</title><subtitle>A collection of lessons learned from failure and success. All of which I have found useful, and hopefuly someone else will to.</subtitle><entry><title type="html">Automating Asset Acquisition</title><link href="https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition.html" rel="alternate" type="text/html" title="Automating Asset Acquisition" /><published>2021-07-19T05:58:18-05:00</published><updated>2021-07-19T05:58:18-05:00</updated><id>https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition</id><content type="html" xml:base="https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition.html">&lt;p&gt;Approximate read time: 7 minutes.&lt;/p&gt;
+
+&lt;h2 id=&quot;background&quot;&gt;Background&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://resourcecalculator.com&quot;&gt;ResourceCalculator.com&lt;/a&gt; is a video game tool that lets you answer the question “What are all the materials I need to gather to build my next project”. It takes all the data about each specific item and creates a flow of &lt;em&gt;raw materials&lt;/em&gt; to &lt;em&gt;desired items&lt;/em&gt;. However, for the Resource Calculator to do this, it needs to get the &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/resources.yaml&quot;&gt;data&lt;/a&gt; on each item from somewhere. Typically, that has been a tedious manual process. This post breaks down one method used for automating this work inside the video game &lt;a href=&quot;https://minecraft.net&quot;&gt;Minecraft&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/Ub6XpozFlqRnxwzB.webp&quot; alt=&quot;Image of resourcecalculators sankey chart&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Minecraft recently released its 1.17 update. For &lt;a href=&quot;https://resourcecalculator.com&quot;&gt;ResourceCalculator.com&lt;/a&gt; to continue to function properly, the &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/resources.yaml&quot;&gt;data&lt;/a&gt; and &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/items&quot;&gt;icons&lt;/a&gt; need to be updated too. Otherwise, it may return the wrong results to the users, and a calculator that gives you the wrong number is about as useful as an unsharpened pencil with no eraser. Minecraft has just around a thousand items at this point and for &lt;a href=&quot;https://resourcecalculator.com&quot;&gt;Resource Calculator&lt;/a&gt; to work correctly it needs data about each one. This data primarily falls into 4 groups.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;The name of the item.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;A picture of the item.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;A list of all the methods of creating the item.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Optional flags (a.k.a. custom settings)&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The first two are pretty self-explanatory, and what we will cover in this post. The latter two are quite complex to automate therefore, as every good programmer knows, we will go for the easier stuff first.&lt;/p&gt;
+
+&lt;p&gt;Before we begin, some fun trivia to start with. In this version of the game, there are no items at all that use the lowercase letter &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;j&lt;/code&gt; or the uppercase letter &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;X&lt;/code&gt;. Every other uppercase and lowercase letter of the English alphabet is used.&lt;/p&gt;
+
+&lt;h2 id=&quot;getting-item-images&quot;&gt;Getting Item Images&lt;/h2&gt;
+
+&lt;p&gt;Now that we have a limited scope, let’s see what we can do. One option is that we can scrape these images from the wiki. However, that is an extra level of human interaction where something can get mangled. We know we already have the images available to us on our computer because we can see them in-game, let’s try to grab them from there instead. Luckily Linux offers some good options for programmatically moving the mouse and capturing the screen. For taking screenshots we will use the &lt;a href=&quot;https://imagemagick.org&quot;&gt;ImageMagick&lt;/a&gt; subprogram &lt;a href=&quot;https://imagemagick.org/script/import.php&quot;&gt;import&lt;/a&gt;. Import allows us to take screenshots of the entire desktop, but it also lets us take screenshots of specific rectangles on the desktop as long as we specify the position and size.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import &lt;span class=&quot;nt&quot;&gt;-window&lt;/span&gt; root &lt;span class=&quot;nt&quot;&gt;-crop&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;32x32+782+459&quot;&lt;/span&gt; cropped_screenshot.webp
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Luckily Minecraft has a grid layout in their creative menu, so we can easily calculate all the positions and sizes of each item in the menu so long as we know the top left corner of the menu.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/qBT6tPRPpLMJesvq.webp&quot; alt=&quot;Image of the Minecraft creative menu&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;But Minecraft has way more items than can fit in their 5x9 creative menu. Minecraft uses a scroll bar to allow players to navigate to the next page of the menu. All we need to do is scroll down. We could do this by clicking and dragging the scroll bar, but it is much easier to just use the scroll wheel! We can specify the number of clicks of the scroll wheel we want, which will allow us to scroll precisely to the next page.&lt;/p&gt;
+
+&lt;p&gt;Once again Linux has a wonderful little tool to handle this. &lt;a href=&quot;https://github.com/jordansissel/xdotool&quot;&gt;xdotool&lt;/a&gt; is just a tool to tell &lt;a href=&quot;https://www.x.org&quot;&gt;X11&lt;/a&gt; to do things. I love it when names make sense.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xdotool click &lt;span class=&quot;nt&quot;&gt;--repeat&lt;/span&gt; 5 &lt;span class=&quot;nt&quot;&gt;--delay&lt;/span&gt; 200 5
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Here we told xdotool to click mouse button 5, the scroll wheel down button, five times with a 200ms delay between each click. That delay is there so that Minecraft has time to catch up to each input by the time the next input is sent. Each scroll wheel down click moves the menu one row, there are five rows, so five clicks should bring us exactly to the next page.&lt;/p&gt;
+
+&lt;p&gt;Wonderful! But what do we do about the final page, where we hit the bottom and can’t keep scrolling? Well, we do nothing right now because Mojang has been so kind as to release this version with exactly the right amount of items to display a full page at the end, so there is no overflow! This will almost definitely be a problem that will need to be dealt with for future versions of Minecraft and like a good programmer we will deal with it when those future versions come out.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/EmtDe3wsrB1s0Pv3.webp&quot; alt=&quot;Image of the Minecraft creative menu scrolled down&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now we have an image of every item in the game, but there is still a slight problem. We have no idea what that item is! If we don’t know what item we have a picture of, then we can’t assign it to the right place on the calculator page.&lt;/p&gt;
+
+&lt;h2 id=&quot;getting-item-names&quot;&gt;Getting Item Names&lt;/h2&gt;
+
+&lt;p&gt;Players can see the names of items in the game by moving their mouse over the items and getting a handy little pop-up with the name of the item and some other text. This is great for humans who can read images but computers want something more ASCII.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/bXFLhOW1IUexSWmR.webp&quot; alt=&quot;Image of the Minecraft item info hoverbox&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Our only saving grace here is that the top left corner of the hover menu appears in exactly the same position relative to the mouse each time. This means as long as we know where the mouse is we can calculate the top left corner of where the text will be.&lt;/p&gt;
+
+&lt;p&gt;Well great! We need to move the mouse over the icon to begin with so let’s just move it to a fixed spot of “right in the middle of the item”.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xdotool mousemove 798 475
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now that we know where the mouse is, we can calculate where the top left corner of the name of the item will be. However, we cannot know where the item’s name will end because we don’t know how long the word is. In order to compensate we will just take a screenshot that starts at the top left corner, and extends all the way to the end of the screen.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import &lt;span class=&quot;nt&quot;&gt;-window&lt;/span&gt; root &lt;span class=&quot;nt&quot;&gt;-crop&lt;/span&gt; 1098x16+822+451 image_text/0.webp
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Great, we have a screenshot of the name, but we still need to convert that into text. My first attempt of decoding this image was via the OCR tool &lt;a href=&quot;https://github.com/tesseract-ocr/tesseract&quot;&gt;Tesseract&lt;/a&gt;. Unfortunately, it turns out that Tesseract does not like these small images that use pixel fonts. The next option was grabbing each individual pixel and deciding what letter it corresponded to. The letters are mostly light pixels and the backgrounds are mostly dark pixels. If we increase contrast, then we can turn all the light pixels into white pixels, and all the dark pixels into black pixels. To do this quickly, we can use another of ImageMagick’s tools &lt;a href=&quot;https://imagemagick.org/script/convert.php&quot;&gt;convert&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;convert image_text/0.webp &lt;span class=&quot;nt&quot;&gt;-grayscale&lt;/span&gt; Rec709Luma &lt;span class=&quot;nt&quot;&gt;-brightness-contrast&lt;/span&gt; 50x100% image_text/0.webp
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Running that command gives us a solidly black or white image that looks like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/V5Sh5AzK7XYaNsaQ.webp&quot; alt=&quot;Image of contrast boosted item name&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Then we look for any columns that contain only black pixels, and use that to divide up the image.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/5HGkv4twOvoHzLXY.webp&quot; alt=&quot;Image of contrast boosted item name&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After the image is divided, we eliminate any chunks that are over 10 pixels wide.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/KjLOPxU7GjKWJrW1.webp&quot; alt=&quot;Image of contrast boosted item name&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After that we convert each column of pixels to a single byte, white pixels become &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1&lt;/code&gt;s black pixels become &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0&lt;/code&gt;s. For this item, we would get the follow hex values.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Index&lt;/th&gt;
+      &lt;th&gt;Hex&lt;/th&gt;
+      &lt;th&gt;Letter&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;0&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x44a2a2a29c&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;S&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;1&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x20fc22&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;t&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;2&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x1c2222221c&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;o&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;3&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x3e2020201e&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;n&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;4&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x1c2a2a2a1a&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;e&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Using a lookup table we can take those binary chunks and do a quick check to see what letter they correspond to. Once we do that, we have an ASCII string!&lt;/p&gt;
+
+&lt;h2 id=&quot;result&quot;&gt;Result&lt;/h2&gt;
+
+&lt;p&gt;Success! We now have a series of named images that were obtained directly from the source, no wiki scraping or manual work.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/mv3nz7eCTrpudddn.webp&quot; alt=&quot;Image of cropped and named items&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If you got to here, you may be interested in looking at the complete source code from this post. Here are direct links to the &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/scripts/dice_screenshots.sh&quot;&gt;bash screenshot tool script&lt;/a&gt; and the &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/scripts/mc_ocr.py&quot;&gt;Minecraft pixel font OCR script&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Check out Resource Calculator at &lt;a href=&quot;https://resourcecalculator.com&quot;&gt;ResourceCalculator.com&lt;/a&gt; to see the final result of this work.&lt;/p&gt;</content><author><name></name></author><category term="resourcecalculator" /><summary type="html">Approximate read time: 30 seconds.</summary></entry></feed>
