@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://asherglick.github.io/Blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://asherglick.github.io/Blog/" rel="alternate" type="text/html" /><updated>2021-07-21T23:48:29-05:00</updated><id>https://asherglick.github.io/Blog/feed.xml</id><title type="html">Orthogonal Projects</title><subtitle>A collection of lessons learned from failure and success. All of which I have found useful, and hopefuly someone else will to.</subtitle><entry><title type="html">Automating Asset Acquisition</title><link href="https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition.html" rel="alternate" type="text/html" title="Automating Asset Acquisition" /><published>2021-07-19T05:58:18-05:00</published><updated>2021-07-19T05:58:18-05:00</updated><id>https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition</id><content type="html" xml:base="https://asherglick.github.io/Blog/resourcecalculator/2021/07/19/automating-asset-acquisition.html">&lt;p&gt;Approximate read time: 7 minutes.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-07-22T00:51:24-05:00</updated><id>/feed.xml</id><title type="html">Orthogonal Projects</title><subtitle>A collection of lessons learned from failure and success. All of which I have found useful, and hopefuly someone else will to.</subtitle><entry><title type="html">Automating Asset Acquisition</title><link href="/resourcecalculator/2021/07/19/automating-asset-acquisition.html" rel="alternate" type="text/html" title="Automating Asset Acquisition" /><published>2021-07-19T05:58:18-05:00</published><updated>2021-07-19T05:58:18-05:00</updated><id>/resourcecalculator/2021/07/19/automating-asset-acquisition</id><content type="html" xml:base="/resourcecalculator/2021/07/19/automating-asset-acquisition.html">&lt;p&gt;Approximate read time: 7 minutes.&lt;/p&gt;
 
 &lt;h2 id=&quot;background&quot;&gt;Background&lt;/h2&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://resourcecalculator.com&quot;&gt;ResourceCalculator.com&lt;/a&gt; is a video game tool that lets you answer the question “What are all the materials I need to gather to build my next project”. It takes all the data about each specific item and creates a flow of &lt;em&gt;raw materials&lt;/em&gt; to &lt;em&gt;desired items&lt;/em&gt;. However, for the Resource Calculator to do this, it needs to get the &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/resources.yaml&quot;&gt;data&lt;/a&gt; on each item from somewhere. Typically, that has been a tedious manual process. This post breaks down one method used for automating this work inside the video game &lt;a href=&quot;https://minecraft.net&quot;&gt;Minecraft&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/Ub6XpozFlqRnxwzB.webp&quot; alt=&quot;Image of resourcecalculators sankey chart&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/Ub6XpozFlqRnxwzB.webp&quot; alt=&quot;Image of resourcecalculators sankey chart&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Minecraft recently released its 1.17 update. For &lt;a href=&quot;https://resourcecalculator.com&quot;&gt;ResourceCalculator.com&lt;/a&gt; to continue to function properly, the &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/resources.yaml&quot;&gt;data&lt;/a&gt; and &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/items&quot;&gt;icons&lt;/a&gt; need to be updated too. Otherwise, it may return the wrong results to the users, and a calculator that gives you the wrong number is about as useful as an unsharpened pencil with no eraser. Minecraft has just around a thousand items at this point and for &lt;a href=&quot;https://resourcecalculator.com&quot;&gt;Resource Calculator&lt;/a&gt; to work correctly it needs data about each one. This data primarily falls into 4 groups.&lt;/p&gt;
 
@@ -36,7 +36,7 @@
 
 &lt;p&gt;Luckily Minecraft has a grid layout in their creative menu, so we can easily calculate all the positions and sizes of each item in the menu so long as we know the top left corner of the menu.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/qBT6tPRPpLMJesvq.webp&quot; alt=&quot;Image of the Minecraft creative menu&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/qBT6tPRPpLMJesvq.webp&quot; alt=&quot;Image of the Minecraft creative menu&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;But Minecraft has way more items than can fit in their 5x9 creative menu. Minecraft uses a scroll bar to allow players to navigate to the next page of the menu. All we need to do is scroll down. We could do this by clicking and dragging the scroll bar, but it is much easier to just use the scroll wheel! We can specify the number of clicks of the scroll wheel we want, which will allow us to scroll precisely to the next page.&lt;/p&gt;
 
@@ -49,7 +49,7 @@
 
 &lt;p&gt;Wonderful! But what do we do about the final page, where we hit the bottom and can’t keep scrolling? Well, we do nothing right now because Mojang has been so kind as to release this version with exactly the right amount of items to display a full page at the end, so there is no overflow! This will almost definitely be a problem that will need to be dealt with for future versions of Minecraft and like a good programmer we will deal with it when those future versions come out.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/EmtDe3wsrB1s0Pv3.webp&quot; alt=&quot;Image of the Minecraft creative menu scrolled down&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/EmtDe3wsrB1s0Pv3.webp&quot; alt=&quot;Image of the Minecraft creative menu scrolled down&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Now we have an image of every item in the game, but there is still a slight problem. We have no idea what that item is! If we don’t know what item we have a picture of, then we can’t assign it to the right place on the calculator page.&lt;/p&gt;
 
@@ -57,7 +57,7 @@
 
 &lt;p&gt;Players can see the names of items in the game by moving their mouse over the items and getting a handy little pop-up with the name of the item and some other text. This is great for humans who can read images but computers want something more ASCII.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/bXFLhOW1IUexSWmR.webp&quot; alt=&quot;Image of the Minecraft item info hoverbox&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/bXFLhOW1IUexSWmR.webp&quot; alt=&quot;Image of the Minecraft item info hoverbox&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Our only saving grace here is that the top left corner of the hover menu appears in exactly the same position relative to the mouse each time. This means as long as we know where the mouse is we can calculate the top left corner of where the text will be.&lt;/p&gt;
 
@@ -78,15 +78,15 @@
 
 &lt;p&gt;Running that command gives us a solidly black or white image that looks like this:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/V5Sh5AzK7XYaNsaQ.webp&quot; alt=&quot;Image of contrast boosted item name&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/V5Sh5AzK7XYaNsaQ.webp&quot; alt=&quot;Image of contrast boosted item name&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Then we look for any columns that contain only black pixels, and use that to divide up the image.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/5HGkv4twOvoHzLXY.webp&quot; alt=&quot;Image of contrast boosted item name&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/5HGkv4twOvoHzLXY.webp&quot; alt=&quot;Image of contrast boosted item name&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;After the image is divided, we eliminate any chunks that are over 10 pixels wide.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/KjLOPxU7GjKWJrW1.webp&quot; alt=&quot;Image of contrast boosted item name&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/KjLOPxU7GjKWJrW1.webp&quot; alt=&quot;Image of contrast boosted item name&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;After that we convert each column of pixels to a single byte, white pixels become &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1&lt;/code&gt;s black pixels become &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0&lt;/code&gt;s. For this item, we would get the follow hex values.&lt;/p&gt;
 
@@ -133,7 +133,7 @@
 
 &lt;p&gt;Success! We now have a series of named images that were obtained directly from the source, no wiki scraping or manual work.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;https://asherglick.github.io/assets/mv3nz7eCTrpudddn.webp&quot; alt=&quot;Image of cropped and named items&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/mv3nz7eCTrpudddn.webp&quot; alt=&quot;Image of cropped and named items&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;If you got to here, you may be interested in looking at the complete source code from this post. Here are direct links to the &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/scripts/dice_screenshots.sh&quot;&gt;bash screenshot tool script&lt;/a&gt; and the &lt;a href=&quot;https://github.com/AsherGlick/ResourceCalculator/blob/master/resource_lists/minecraft/scripts/mc_ocr.py&quot;&gt;Minecraft pixel font OCR script&lt;/a&gt;.&lt;/p&gt;
 
